@@ -8,21 +8,21 @@ SIGN="$SRC/scripts/sign-file"
 
 if [ -x "$SIGN" ]; then
     echo "[+] sign-file déjà présent dans $SIGN"
-    exit 0
-fi
-
-echo "[*] Compilation de sign-file pour $KVER"
-
-if [ ! -f "$SRC/Makefile" ]; then
-    echo "❌ Headers incomplets : Makefile introuvable dans $SRC"
-    exit 1
-fi
-
-make "$SRC" scripts
-
-if [ ! -x "$SIGN" ]; then
-    echo "❌ Échec de compilation de sign-file"
-    exit 1
 else
-    echo "[+] sign-file compilé avec succès"
+
+    echo "[*] Compilation de sign-file pour $KVER"
+
+    if [ ! -f "$SRC/Makefile" ]; then
+        echo "❌ Headers incomplets : Makefile introuvable dans $SRC"
+        exit 1
+    fi
+
+    make "$SRC" scripts
+
+    if [ ! -x "$SIGN" ]; then
+        echo "❌ Échec de compilation de sign-file"
+        exit 1
+    else
+        echo "[+] sign-file compilé avec succès"
+    fi
 fi
