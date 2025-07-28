@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+ensure_sign-file() {
+
+set -e
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+ORANGE='\033[38;5;208m'
+GREEN='\033[0;32m'
+RESET='\033[0m'
+
+KVER="$(uname -r)"
+SRC="/usr/src/linux-headers-$KVER"
+SIGN="$SRC/scripts/sign-file"
+
+if [ -x "$SIGN" ]; then
+    echo -e "${YELLOW}[+] sign-file déjà présent dans $SIGN${RESET}"
+else
+	echo -e "${YELLOW}[*] Compilation de sign-file pour $KVER${RESET}"
+
+	if [ ! -f "$SRC/Makefile" ]; then
+		echo -e "${RED}❌ Headers incomplets : Makefile introuvable dans $SRC${RESET}"
+		exit 1
+	fi
+
+	make -C "$SRC" scripts
+
+	if [ ! -x "$SIGN" ]; then
+		echo -e "${RED}❌ Échec de compilation de sign-file${RESET}"
+		exit 1
+	else
+		echo -e "${GREEN}[+] sign-file compilé avec succès"
+	fi
+fi
+
+}
+
+import_mok() {
+
+	echo -e "${YELLOW}[*] Import du certificat via mokutil...${RESET}"
+	mokutil --import "/usr/share/secureboot-signing/MOK.der"
+	echo -e "${ORANGE}[!] Redémarre et choisis 'Enroll MOK' pour activer la clé (MOKManager)${RESET}"
+
+}
+
+signing_modules() {
+	echo -e "${YELLOW}[*] Signature des modules...${RESET}"
+	KERNEL_VERSION="$(uname -r)"
+	SIGN_FILE="/usr/src/linux-headers-${KERNEL_VERSION}/scripts/sign-file"
+
+	find /usr/lib/modules/${KERNEL_VERSION}/ -name '*.ko' | while read -r module; do
+	sudo --preserve-env=KBUILD_SIGN_PIN \
+        "$SIGN_FILE" sha256 /usr/share/secureboot-signing/MOK.priv /usr/share/secureboot-signing/MOK.der "$module" \
+        || break
+	done
+	echo -e "${GREEN}[+] Modules signés avec succès"
+}
+
+import_mok
+ensure_sign-file
+signing_modules
