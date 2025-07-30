@@ -37,7 +37,7 @@ else
 		echo -e "${RED}❌ Échec de compilation de sign-file${RESET}"
 		exit 1
 	else
-		echo -e "${GREEN}[+] sign-file compilé avec succès"
+		echo -e "${GREEN}[+] sign-file compilé avec succès${RESET}"
 	fi
 fi
 
@@ -61,7 +61,7 @@ signing_modules() {
         "$SIGN_FILE" sha256 /usr/share/secureboot-signing/MOK.priv /usr/share/secureboot-signing/MOK.der "$module" \
         || break
 	done
-	echo -e "${GREEN}[+] Modules signés avec succès"
+	echo -e "${GREEN}[+] Modules signés avec succès${RESET}"
 }
 
 import_mok
