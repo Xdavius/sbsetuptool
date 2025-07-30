@@ -1,0 +1,19 @@
+#!/bin/sh
+
+KERNEL_VERSION="$1"
+KEYDIR="/usr/share/secureboot-signing"
+SIGN_FILE="/usr/src/linux-headers-${KERNEL_VERSION}/scripts/sign-file"
+
+if [[ -d /usr/lib/modules/${KERNEL_VERSION}/misc ]]; then
+	find /usr/lib/modules/${KERNEL_VERSION}/misc/ -name '*.ko' | while read -r module; do
+        "$SIGN_FILE" sha256 "$KEYDIR/MOK.priv" "$KEYDIR/MOK.der" "$module" \
+        || break
+	done
+	echo -e "${GREEN}[+] Modules Updates signés avec succès"
+
+if [[ -d /usr/lib/modules/${KERNEL_VERSION}/updates ]]; then
+		find /usr/lib/modules/${KERNEL_VERSION}/updates/ -name '*.ko' | while read -r module; do
+        "$SIGN_FILE" sha256 "$KEYDIR/MOK.priv" "$KEYDIR/MOK.der" "$module" \
+        || break
+	done
+	echo -e "${GREEN}[+] Modules Dkms signés avec succès"
