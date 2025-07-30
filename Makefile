@@ -48,6 +48,7 @@ install:
 	# Hook kernel post-install
 	install -d $(DESTDIR)/etc/kernel/postinst.d
 	install -m 755 zz-sign-kernel $(POSTINST_HOOK)
+	install -m 755 zz-sign-modules $(DESTDIR)$(ETCDIR)/kernel/postinst.d/zz-sign-modules
 
 	# Hook headers post-install
 	install -d $(DESTDIR)/etc/kernel/header_postinst.d/
@@ -65,6 +66,7 @@ uninstall:
 	# Suppression des hook postinst
 	rm -f $(POSTINST_HOOK)
 	rm -f $(POSTINST_HEADERS_HOOK)
+	rm -f $(DESTDIR)$(ETCDIR)/kernel/postinst.d/zz-sign-modules
 
 	# Suppression sbsetuptool
 	$(DESTDIR)$(PREFIX)/bin/sbsetuptool
