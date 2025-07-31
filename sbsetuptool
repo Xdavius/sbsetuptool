@@ -58,8 +58,10 @@ signing_modules() {
 
 	find /usr/lib/modules/${KERNEL_VERSION}/ -name '*.ko' | while read -r module; do
 	sudo --preserve-env=KBUILD_SIGN_PIN \
-        "$SIGN_FILE" sha256 /usr/share/secureboot-signing/MOK.priv /usr/share/secureboot-signing/MOK.der "$module" \
-        || break
+        "$SIGN_FILE" sha256 /usr/share/secureboot-signing/MOK.priv /usr/share/secureboot-signing/MOK.der "$module" || {
+        echo -e "${RED}[!] Échec de la signature : $module${RESET}"
+        break
+        }
 	done
 	echo -e "${GREEN}[+] Modules signés avec succès${RESET}"
 }

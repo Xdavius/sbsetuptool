@@ -1,24 +1,29 @@
 #!/bin/sh
 
-KERNEL_VERSION="$1"
+KERNEL_VERSION="${1:-$(uname -r)}"
 KEYDIR="/usr/share/secureboot-signing"
 SIGN_FILE="/usr/src/linux-headers-${KERNEL_VERSION}/scripts/sign-file"
 
-GREEN="\033[1;32m"
-RESET="\033[0m"
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+ORANGE='\033[38;5;208m'
+GREEN='\033[0;32m'
+RESET='\033[0m'
 
-# Signer les modules dans misc
-if [ -d "/usr/lib/modules/${KERNEL_VERSION}/misc" ]; then
-	find "/usr/lib/modules/${KERNEL_VERSION}/misc/" -name '*.ko' | while read -r module; do
-		"$SIGN_FILE" sha256 "$KEYDIR/MOK.priv" "$KEYDIR/MOK.der" "$module" || break
-	done
-	echo -e "${GREEN}[+] Modules Updates signés avec succès${RESET}"
+if [ ! -x "$SIGN_FILE" ]; then
+	echo -e "${RED}[!] Fichier sign-file introuvable ou non exécutable : $SIGN_FILE${RESET}"
+	exit 1
 fi
 
-# Signer les modules dans updates
-if [ -d "/usr/lib/modules/${KERNEL_VERSION}/updates" ]; then
-	find "/usr/lib/modules/${KERNEL_VERSION}/updates/" -name '*.ko' | while read -r module; do
-		"$SIGN_FILE" sha256 "$KEYDIR/MOK.priv" "$KEYDIR/MOK.der" "$module" || break
+echo -e "${ORANGE}→ Signature des modules du noyau ${KERNEL_VERSION}${RESET}"
+if [ -d "/usr/lib/modules/${KERNEL_VERSION}" ]; then
+	find "/usr/lib/modules/${KERNEL_VERSION}/" -name '*.ko' | while read -r module; do
+		"$SIGN_FILE" sha256 "$KEYDIR/MOK.priv" "$KEYDIR/MOK.der" "$module" || {
+			echo -e "${RED}[!] Échec de la signature : $module${RESET}"
+			break
+		}
 	done
-	echo -e "${GREEN}[+] Modules DKMS signés avec succès${RESET}"
+	echo -e "${GREEN}[+] Tous les modules signés avec succès${RESET}"
+else
+	echo -e "${YELLOW}[!] Dossier de modules introuvable pour ${KERNEL_VERSION}${RESET}"
 fi

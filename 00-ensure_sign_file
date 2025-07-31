@@ -6,23 +6,29 @@ KVER="$1"
 SRC="/usr/src/linux-headers-$KVER"
 SIGN="$SRC/scripts/sign-file"
 
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+ORANGE='\033[38;5;208m'
+GREEN='\033[0;32m'
+RESET='\033[0m'
+
 if [ -x "$SIGN" ]; then
-    echo "[+] sign-file déjà présent dans $SIGN"
+    echo -e "${GREEN}[+] sign-file déjà présent dans $SIGN${RESET}"
 else
 
-    echo "[*] Compilation de sign-file pour $KVER"
+    echo "${ORANGE}[*] Compilation de sign-file pour $KVER${RESET}"
 
     if [ ! -f "$SRC/Makefile" ]; then
-        echo "❌ Headers incomplets : Makefile introuvable dans $SRC"
+        echo "${RED}❌ Headers incomplets : Makefile introuvable dans $SRC${RESET}"
         exit 1
     fi
 
     make "$SRC" scripts
 
     if [ ! -x "$SIGN" ]; then
-        echo "❌ Échec de compilation de sign-file"
+        echo "${RED}❌ Échec de compilation de sign-file${RESET}"
         exit 1
     else
-        echo "[+] sign-file compilé avec succès"
+        echo "${GREEN}[+] sign-file compilé avec succès${RESET}"
     fi
 fi
