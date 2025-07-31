@@ -69,6 +69,6 @@ uninstall:
 	rm -f $(DESTDIR)$(ETCDIR)/kernel/postinst.d/zz-sign-modules
 
 	# Suppression sbsetuptool
-	$(DESTDIR)$(PREFIX)/bin/sbsetuptool
+	rm -f $(DESTDIR)$(PREFIX)/bin/sbsetuptool
 
 	@echo "[✔] Désinstallation terminée"
