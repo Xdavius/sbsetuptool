@@ -19,33 +19,44 @@ RESET='\033[0m'
 KVER="$(uname -r)"
 SRC="/usr/src/linux-headers-$KVER"
 SIGN_FILE="$SRC/scripts/sign-file"
+KEYDIR="/etc/share/secureboot-signing"
 
-ensure_sign-file() {
+create_keys() {
+    echo -e "${YELLOW}[I] Création du trouveau de clé dans $KEYDIR ...${RESET}"
+	# Dossier de clé
+	if [ ! -d $(KEYDIR) ]; then
+	  install -d $(KEYDIR)
+	fi
 
-if [ -x "$SIGN_FILE" ]; then
-    echo -e "${YELLOW}[+] sign-file déjà présent dans $SIGN_FILE${RESET}"
-else
-        echo -e "${YELLOW}[*] Compilation de sign-file pour $KVER${RESET}"
+	# Créer la clé et le certificat s’ils n’existent pas déjà
+	if [ ! -f $(KEYDIR)/MOK.priv ]; then
+	  openssl genrsa -out $(KEYDIR)/MOK.priv 2048
+	  chmod 400 $(KEYDIR)/MOK.priv
+	fi
 
-        if [ ! -f "$SRC/Makefile" ]; then
-                echo -e "${RED}❌ Headers incomplets : Makefile introuvable dans $SRC${RESET}"
-                exit 1
-        fi
+	if [ ! -f $(KEYDIR)/MOK.der ]; then
+	  openssl req -new -x509 -sha256 -key $(KEYDIR)/MOK.priv \
+	    -outform DER -out $(KEYDIR)/MOK.der -days 3650 \
+	    -subj "/CN=Secure Boot Signing/O=Custom Debian/C=FR"
+	fi
 
-        make -C "$SRC" scripts
+	if [ ! -f $(KEYDIR)/MOK.pem ]; then
+	  openssl x509 -inform der -in $(KEYDIR)/MOK.der -out $(KEYDIR)/MOK.pem
+	fi
+}
 
-        if [ ! -x "$SIGN_FILE" ]; then
-                echo -e "${RED}❌ Échec de compilation de sign-file${RESET}"
-                exit 1
-        else
-                echo -e "${GREEN}[+] sign-file compilé avec succès${RESET}"
-        fi
-fi
+dkms_framework_conf() {
+	echo -e "${YELLOW}[I] Création de la configuration de DKMS Framework...${RESET}"
+	if [ ! -d "/etc/dkms/framework.conf.d" ]; then \
+	  install -d "/etc/dkms/framework.conf.d"; \
+	fi
 
+	echo 'PRIVATE_KEY="/usr/share/secureboot-signing/MOK.priv"' > /etc/dkms/framework.conf.d/dkms_key_path.conf
+	echo 'PUBLIC_CERT="/usr/share/secureboot-signing/MOK.der"' >> /etc/dkms/framework.conf.d/dkms_key_path.conf
 }
 
 import_mok() {
-    echo -e "${YELLOW}[*] Vérification de l'import du certificat MOK...${RESET}"
+    echo -e "${YELLOW}[I] Vérification de l'import du certificat MOK...${RESET}"
 
     # Empreinte SHA1 du certificat (ex: A1:B2:...)
     FINGERPRINT="$(openssl x509 -in /usr/share/secureboot-signing/MOK.pem -noout -fingerprint -sha1 | cut -d'=' -f2)"
@@ -53,25 +64,51 @@ import_mok() {
     if mokutil --list-enrolled | grep -qi "$FINGERPRINT"; then
         echo -e "${GREEN}[-] Le certificat est déjà inscrit dans la base MOK.${RESET}"
     else
-        echo -e "${YELLOW}[*] Import du certificat via mokutil...${RESET}"
+        echo -e "${YELLOW}[I] Import du certificat via mokutil...${RESET}"
         mokutil --import "/usr/share/secureboot-signing/MOK.der"
         echo -e "${ORANGE}[!] Redémarre et choisis 'Enroll MOK' pour activer la clé (Via MOKManager)${RESET}"
     fi
 }
 
+ensure_sign-file() {
+
+if [ -x "$SIGN_FILE" ]; then
+    echo -e "${YELLOW}[I] sign-file déjà présent dans $SIGN_FILE${RESET}"
+else
+        echo -e "${YELLOW}[I] Compilation de sign-file pour $KVER${RESET}"
+
+        if [ ! -f "$SRC/Makefile" ]; then
+                echo -e "${RED}[X] Headers incomplets : Makefile introuvable dans $SRC${RESET}"
+                exit 1
+        fi
+
+        make -C "$SRC" scripts
+
+        if [ ! -x "$SIGN_FILE" ]; then
+                echo -e "${RED}[X] Échec de compilation de sign-file${RESET}"
+                exit 1
+        else
+                echo -e "${GREEN}[V] sign-file compilé avec succès${RESET}"
+        fi
+fi
+
+}
+
 signing_modules() {
-        echo -e "${YELLOW}[*] Signature des modules...${RESET}"
+        echo -e "${YELLOW}[I] Signature des modules...${RESET}"
 
         find /usr/lib/modules/${KVER}/ -name '*.ko' | while read -r module; do
         sudo --preserve-env=KBUILD_SIGN_PIN \
         "$SIGN_FILE" sha256 /usr/share/secureboot-signing/MOK.priv /usr/share/secureboot-signing/MOK.der "$module" || {
-        echo -e "${RED}[!] Échec de la signature : $module${RESET}"
+        echo -e "${RED}[X] Échec de la signature : $module${RESET}"
         break
         }
         done
-        echo -e "${GREEN}[+] Modules signés avec succès${RESET}"
+        echo -e "${GREEN}[V] Modules signés avec succès${RESET}"
 }
 
+create_keys
+dkms_framework_conf
 import_mok
 ensure_sign-file
 signing_modules
