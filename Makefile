@@ -42,6 +42,8 @@ POSTINST_HEADERS_HOOK := $(DESTDIR)$(ETCDIR)/kernel/header_postinst.d/00-ensure_
 # Liste des fichiers nécessaires
 REQUIRED_FILES := zz-sign-kernel zz-sign-modules 00-ensure_sign_file sbsetuptool
 
+.PHONY: all install uninstall check logo
+
 logo:
 	@printf "$(CYAN)"
 	@printf "███████╗██████╗ ███████╗███████╗████████╗██╗   ██╗██████╗ ████████╗ ██████╗  ██████╗ ██╗       \n"
@@ -53,7 +55,8 @@ logo:
 	@printf "$(RESET)\n"
 
 
-all: logo
+all:
+	$(MAKE) logo
 	$(call log_warn,\
 		"Rien à compiler. Utilise 'make install' pour installer les fichiers.",\
 		"Nothing to compile. Use 'make install' to install the files.")
@@ -68,7 +71,8 @@ check:
 		"Tous les fichiers requis sont présents.",\
 		"All required files are present.")
 
-install: logo check
+install: check
+	$(MAKE) logo
 	$(call log_info,\
 		"Installation...",\
 		"Installing...")
@@ -89,7 +93,8 @@ install: logo check
 		"Installation terminée.",\
 		"Installation complete.")
 
-uninstall: logo
+uninstall:
+	$(MAKE) logo
 	$(call log_info,\
 		"Désinstallation...",\
 		"Uninstalling...")
