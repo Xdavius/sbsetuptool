@@ -14,12 +14,23 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 ORANGE='\033[38;5;208m'
 GREEN='\033[0;32m'
+CYAN='\033[0;36m'
 RESET='\033[0m'
 
 KVER="$(uname -r)"
 SRC="/usr/src/linux-headers-$KVER"
 SIGN_FILE="$SRC/scripts/sign-file"
 KEYDIR="/etc/share/secureboot-signing"
+
+
+printf "$(CYAN)"
+printf "███████╗██████╗ ███████╗███████╗████████╗██╗   ██╗██████╗ ████████╗ ██████╗  ██████╗ ██╗       \n"
+printf "██╔════╝██╔══██╗██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗╚══██╔══╝██╔═══██╗██╔═══██╗██║       \n"
+printf "███████╗██████╔╝███████╗█████╗     ██║   ██║   ██║██████╔╝   ██║   ██║   ██║██║   ██║██║       \n"
+printf "╚════██║██╔══██╗╚════██║██╔══╝     ██║   ██║   ██║██╔═══╝    ██║   ██║   ██║██║   ██║██║       \n"
+printf "███████║██████╔╝███████║███████╗   ██║   ╚██████╔╝██║        ██║   ╚██████╔╝╚██████╔╝███████╗  \n"
+printf "╚══════╝╚═════╝ ╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝        ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝  \n\n"
+printf "$(RESET)\n"
 
 create_keys() {
     echo -e "${YELLOW}[I] Création du trouveau de clé dans $KEYDIR ...${RESET}"
@@ -107,8 +118,24 @@ signing_modules() {
         echo -e "${GREEN}[V] Modules signés avec succès${RESET}"
 }
 
-create_keys
-dkms_framework_conf
-import_mok
-ensure_sign-file
-signing_modules
+remove_keys() {
+       # Suppression des clés
+       if [ ! -d $(KEYDIR) ]; then \
+         rm -rf $(KEYDIR); \
+	   fi
+}
+
+case $1 in
+--remove-keys)
+  remove_keys
+  ;;
+--help)
+;;
+*)
+  create_keys
+  dkms_framework_conf
+  import_mok
+  ensure_sign-file
+  signing_modules
+;;
+esac
