@@ -73,7 +73,8 @@ check:
 		"All required files are present.")
 	@printf "$(RESET)\n"
 
-install: check
+install:
+	$(MAKE) check
 	$(MAKE) logo
 	$(call log_info,\
 		"Installation...",\
