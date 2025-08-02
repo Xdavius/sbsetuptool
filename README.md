@@ -8,7 +8,9 @@ sudo apt install apt install git mokutil sbsigntool dkms linux-headers-amd64
 ```
 
 # USAGE
+
+Add LANG= to make install for English version. Default is French
 ```
-sudo make install
+sudo make install LANG=en
 sudo sbsetuptool
 ```
