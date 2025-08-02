@@ -120,8 +120,8 @@ signing_modules() {
 
 remove_keys() {
        # Suppression des clés
-       if [ ! -d $(KEYDIR) ]; then \
-         rm -rf $(KEYDIR); \
+       if [ ! -d ${KEYDIR} ]; then \
+         rm -rf ${KEYDIR}; \
 	   fi
 }
 
