@@ -47,9 +47,9 @@ endef
 
 define log_info
 	@if [ "$(LANG)" = "fr" ]; then \
-		printf "$(YELLOW)[ⓘ]  $1$(RESET)\n"; \
+		printf "$(YELLOW)[INFO]  $1$(RESET)\n"; \
 	else \
-		printf "$(YELLOW)[ⓘ]  $2$(RESET)\n"; \
+		printf "$(YELLOW)[INFO]  $2$(RESET)\n"; \
 	fi
 endef
 
