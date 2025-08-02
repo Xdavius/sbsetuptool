@@ -95,7 +95,7 @@ check:
 		exit 1; \
 	fi
 
-install: check logo
+install: logo check
 	$(call log_info,\
 		"Installation...",\
 		"Installing...")
