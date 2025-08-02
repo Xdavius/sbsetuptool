@@ -78,15 +78,22 @@ logo:
 	@printf "$(RESET)\n"
 
 check:
-	@for file in $(REQUIRED_FILES); do \
+	@missing=0; \
+	for file in $(REQUIRED_FILES); do \
 		if [ ! -f "$$file" ]; then \
-			printf '\033[0;31m[✗] Fichier manquant : %s\033[0m\n' "$$file"; \
+			printf '$(RED)[✗] Fichier manquant : %s$(RESET)\n' "$$file"; \
+			missing=1; \
 		fi; \
-	done
-	$(call log_success,\
-		"Tous les fichiers requis sont présents.",\
-		"All required files are present.")
-	@printf "$(RESET)\n"
+	done; \
+	if [ "$$missing" -eq 0 ]; then \
+		if [ "$(LANG)" = "fr" ]; then \
+			printf '$(GREEN)[✓] Tous les fichiers requis sont présents.$(RESET)\n'; \
+		else \
+			printf '$(GREEN)[✓] All required files are present.$(RESET)\n'; \
+		fi; \
+	else \
+		exit 1; \
+	fi
 
 install: check logo
 	$(call log_info,\
