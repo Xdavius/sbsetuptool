@@ -14,23 +14,44 @@ ORANGE  := \033[38;5;208m
 CYAN    := \033[0;36m
 RESET   := \033[0m
 
-# Symboles
-OK      := ✓
-ERROR   := ✗
-INFO    := ⓘ
-WARNING := ⚠
-
 # Fonction de traduction :
 # $(call msg, message_fr, message_en)
 define msg
 $(if $(filter $(LANG),fr),$(1),$(2))
 endef
 
-# Macros log avec traduction
-log_success = @printf "$(GREEN)[$(OK)] $(call msg,$(1),$(2))$(RESET)\n"
-log_error   = @printf "$(RED)[$(ERROR)] $(call msg,$(1),$(2))$(RESET)\n"; false
-log_info    = @printf "$(YELLOW)[$(INFO)] $(call msg,$(1),$(2))$(RESET)\n"
-log_warn    = @printf "$(ORANGE)[$(WARNING)] $(call msg,$(1),$(2))$(RESET)\n"
+# Fonction log avec traduction
+define log_success
+	@if [ "$(LANG)" = "fr" ]; then \
+		printf "$(GREEN)[✓]  $1$(RESET)\n"; \
+	else \
+		printf "$(GREEN)[✓]  $2$(RESET)\n"; \
+	fi
+endef
+
+define log_error
+	@if [ "$(LANG)" = "fr" ]; then \
+		printf "$(RED)[✗]  $1$(RESET)\n"; \
+	else \
+		printf "$(RED)[✗]  $2$(RESET)\n"; \
+	fi; false
+endef
+
+define log_warn
+	@if [ "$(LANG)" = "fr" ]; then \
+		printf "$(ORANGE)[!]  $1$(RESET)\n"; \
+	else \
+		printf "$(ORANGE)[!]  $2$(RESET)\n"; \
+	fi
+endef
+
+define log_info
+	@if [ "$(LANG)" = "fr" ]; then \
+		printf "$(YELLOW)[ⓘ]  $1$(RESET)\n"; \
+	else \
+		printf "$(YELLOW)[ⓘ]  $2$(RESET)\n"; \
+	fi
+endef
 
 # Chemins des fichiers
 HELPER := $(DESTDIR)$(ETCDIR)/dkms/sign_helper.sh
@@ -42,7 +63,7 @@ POSTINST_HEADERS_HOOK := $(DESTDIR)$(ETCDIR)/kernel/header_postinst.d/00-ensure_
 # Liste des fichiers nécessaires
 REQUIRED_FILES := zz-sign-kernel zz-sign-modules 00-ensure_sign_file sbsetuptool
 
-.PHONY: all install uninstall check logo
+.PHONY: all check logo install uninstall
 
 default: all
 
