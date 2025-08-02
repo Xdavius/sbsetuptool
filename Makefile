@@ -1,104 +1,49 @@
-# Variables d’installation
 PREFIX ?= /usr
 ETCDIR ?= /etc
 DESTDIR ?=
 
-# Langue (fr ou en)
-LANG ?= fr
+KEYDIR = $(DESTDIR)$(PREFIX)/share/secureboot-signing
+HELPER = $(DESTDIR)$(ETCDIR)/dkms/sign_helper.sh
+DKMS_CONF = $(DESTDIR)$(ETCDIR)/dkms/dkms.conf
+CERT_PEM = $(KEYDIR)/MOK.pem
+CERT_DER = $(KEYDIR)/MOK.der
+POSTINST_HOOK = $(DESTDIR)$(ETCDIR)/kernel/postinst.d/zz-sign-kernel
+POSTINST_HEADERS_HOOK = $(DESTDIR)$(ETCDIR)/kernel/header_postinst.d/00-ensure_sign_file
 
-# Couleurs ANSI
-RED     := \033[0;31m
-GREEN   := \033[0;32m
-YELLOW  := \033[1;33m
-ORANGE  := \033[38;5;208m
-CYAN    := \033[0;36m
-RESET   := \033[0m
+all:
+	@echo "Rien à compiler. Utilise 'make install' pour installer les fichiers."
 
-# Fonction de traduction :
-# $(call msg, message_fr, message_en)
-define msg
-$(if $(filter $(LANG),fr),$(1),$(2))
-endef
+install:
+	@echo "Installation des fichiers Secure Boot..."
 
-# Fonction log avec traduction
-define log_success
-	@if [ "$(LANG)" = "fr" ]; then \
-		printf "$(GREEN)[✓]  $1$(RESET)\n"; \
-	else \
-		printf "$(GREEN)[✓]  $2$(RESET)\n"; \
-	fi
-endef
-
-define log_error
-	@if [ "$(LANG)" = "fr" ]; then \
-		printf "$(RED)[✗]  $1$(RESET)\n"; \
-	else \
-		printf "$(RED)[✗]  $2$(RESET)\n"; \
-	fi; false
-endef
-
-define log_warn
-	@if [ "$(LANG)" = "fr" ]; then \
-		printf "$(ORANGE)[!]  $1$(RESET)\n"; \
-	else \
-		printf "$(ORANGE)[!]  $2$(RESET)\n"; \
-	fi
-endef
-
-define log_info
-	@if [ "$(LANG)" = "fr" ]; then \
-		printf "$(YELLOW)[INFO]  $1$(RESET)\n"; \
-	else \
-		printf "$(YELLOW)[INFO]  $2$(RESET)\n"; \
-	fi
-endef
-
-# Chemins des fichiers
-HELPER := $(DESTDIR)$(ETCDIR)/dkms/sign_helper.sh
-DKMS_CONF := $(DESTDIR)$(ETCDIR)/dkms/dkms.conf
-KEYDIR := "/etc/share/secureboot-signing"
-POSTINST_HOOK := $(DESTDIR)$(ETCDIR)/kernel/postinst.d/zz-sign-kernel
-POSTINST_HEADERS_HOOK := $(DESTDIR)$(ETCDIR)/kernel/header_postinst.d/00-ensure_sign_file
-
-# Liste des fichiers nécessaires
-REQUIRED_FILES := zz-sign-kernel zz-sign-modules 00-ensure_sign_file sbsetuptool
-
-.PHONY: all check logo install uninstall
-
-default: all
-
-logo:
-	@printf "$(CYAN)"
-	@printf "███████╗██████╗ ███████╗███████╗████████╗██╗   ██╗██████╗ ████████╗ ██████╗  ██████╗ ██╗       \n"
-	@printf "██╔════╝██╔══██╗██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗╚══██╔══╝██╔═══██╗██╔═══██╗██║       \n"
-	@printf "███████╗██████╔╝███████╗█████╗     ██║   ██║   ██║██████╔╝   ██║   ██║   ██║██║   ██║██║       \n"
-	@printf "╚════██║██╔══██╗╚════██║██╔══╝     ██║   ██║   ██║██╔═══╝    ██║   ██║   ██║██║   ██║██║       \n"
-	@printf "███████║██████╔╝███████║███████╗   ██║   ╚██████╔╝██║        ██║   ╚██████╔╝╚██████╔╝███████╗  \n"
-	@printf "╚══════╝╚═════╝ ╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝        ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝  \n"
-	@printf "$(RESET)\n"
-
-check:
-	@missing=0; \
-	for file in $(REQUIRED_FILES); do \
-		if [ ! -f "$$file" ]; then \
-			printf '$(RED)[✗] Fichier manquant : %s$(RESET)\n' "$$file"; \
-			missing=1; \
-		fi; \
-	done; \
-	if [ "$$missing" -eq 0 ]; then \
-		if [ "$(LANG)" = "fr" ]; then \
-			printf '$(GREEN)[✓] Tous les fichiers requis sont présents.$(RESET)\n'; \
-		else \
-			printf '$(GREEN)[✓] All required files are present.$(RESET)\n'; \
-		fi; \
-	else \
-		exit 1; \
+	# Dossier de clé
+	if [ ! -d $(KEYDIR) ]; then \
+	  install -d $(KEYDIR); \
 	fi
 
-install: logo check
-	$(call log_info,\
-		"Installation...",\
-		"Installing...")
+	# Créer la clé et le certificat s’ils n’existent pas déjà
+	if [ ! -f $(KEYDIR)/MOK.priv ]; then \
+	  openssl genrsa -out $(KEYDIR)/MOK.priv 2048; \
+	  chmod 400 $(KEYDIR)/MOK.priv; \
+	fi
+
+	if [ ! -f $(KEYDIR)/MOK.der ]; then \
+	  openssl req -new -x509 -sha256 -key $(KEYDIR)/MOK.priv \
+	    -outform DER -out $(KEYDIR)/MOK.der -days 3650 \
+	    -subj "/CN=Secure Boot Signing/O=Custom Debian/C=FR"; \
+	fi
+
+	if [ ! -f $(KEYDIR)/MOK.pem ]; then \
+	  openssl x509 -inform der -in $(KEYDIR)/MOK.der -out $(KEYDIR)/MOK.pem; \
+	fi
+
+	# Script de clés DKMS
+	if [ ! -d "$(DESTDIR)$(ETCDIR)/dkms/framework.conf.d" ]; then \
+	  install -d "$(DESTDIR)$(ETCDIR)/dkms/framework.conf.d"; \
+	fi
+
+	echo 'PRIVATE_KEY="/usr/share/secureboot-signing/MOK.priv"' > $(DESTDIR)$(ETCDIR)/dkms/framework.conf.d/dkms_key_path.conf
+	echo 'PUBLIC_CERT="/usr/share/secureboot-signing/MOK.der"' >> $(DESTDIR)$(ETCDIR)/dkms/framework.conf.d/dkms_key_path.conf
 
 	# Hook kernel post-install
 	install -d $(DESTDIR)/etc/kernel/postinst.d
@@ -108,22 +53,15 @@ install: logo check
 	# Hook headers post-install
 	install -d $(DESTDIR)/etc/kernel/header_postinst.d/
 	install -m 755 00-ensure_sign_file $(POSTINST_HEADERS_HOOK)
-
-	# sbsetuptool
 	install -Dm 755 sbsetuptool $(DESTDIR)$(PREFIX)/bin/sbsetuptool
+	@echo "[✔] Installation complète"
 
-	$(call log_success,\
-		"Installation terminée.",\
-		"Installation complete.")
-	@printf "$(RESET)\n"
-
-uninstall: logo
-	$(call log_info,\
-		"Désinstallation...",\
-		"Uninstalling...")
-
+uninstall:
 	# Suppression du script DKMS
 	rm -f $(DESTDIR)$(ETCDIR)/dkms/framework.conf.d/dkms_key_path.conf
+
+	# Suppression des clés
+	rm -rf $(KEYDIR)
 
 	# Suppression des hook postinst
 	rm -f $(POSTINST_HOOK)
@@ -131,15 +69,6 @@ uninstall: logo
 	rm -f $(DESTDIR)$(ETCDIR)/kernel/postinst.d/zz-sign-modules
 
 	# Suppression sbsetuptool
-	rm -f $(DESTDIR)$(PREFIX)/bin/sbsetuptool
+	$(DESTDIR)$(PREFIX)/bin/sbsetuptool
 
-	$(call log_success,\
-		"Désinstallation terminée.",\
-		"Uninstall complete.")
-	@printf "$(RESET)\n"
-
-all: logo
-	$(call log_warn,\
-		"Rien à compiler. Utilise 'make install' pour installer les fichiers.",\
-		"Nothing to compile. Use 'make install' to install the files.")
-	@printf "$(RESET)\n"
+	@echo "[✔] Désinstallation terminée"
