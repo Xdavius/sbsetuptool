@@ -80,7 +80,7 @@ logo:
 check:
 	@for file in $(REQUIRED_FILES); do \
 		if [ ! -f "$$file" ]; then \
-			$(call log_error,"Fichier manquant : $$file","Missing file: $$file"); \
+			printf '\033[0;31m[✗] Fichier manquant : %s\033[0m\n' "$$file"; \
 		fi; \
 	done
 	$(call log_success,\
