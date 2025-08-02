@@ -67,7 +67,7 @@ check:
 		"All required files are present.")
 	@printf "$(RESET)\n"
 
-install:
+install: check logo
 	$(call log_info,\
 		"Installation...",\
 		"Installing...")
@@ -89,7 +89,7 @@ install:
 		"Installation complete.")
 	@printf "$(RESET)\n"
 
-uninstall: check logo
+uninstall: logo
 	$(call log_info,\
 		"Désinstallation...",\
 		"Uninstalling...")
@@ -110,8 +110,7 @@ uninstall: check logo
 		"Uninstall complete.")
 	@printf "$(RESET)\n"
 
-all:
-	$(MAKE) logo
+all: logo
 	$(call log_warn,\
 		"Rien à compiler. Utilise 'make install' pour installer les fichiers.",\
 		"Nothing to compile. Use 'make install' to install the files.")
