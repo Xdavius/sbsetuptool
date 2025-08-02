@@ -15,8 +15,8 @@ CYAN    := \033[0;36m
 RESET   := \033[0m
 
 # Symboles
-CHECK   := ✓
-CROSS   := ✗
+OK      := ✓
+ERROR   := ✗
 INFO    := ⓘ
 WARNING := ⚠
 
@@ -27,8 +27,8 @@ $(if $(filter $(LANG),fr),$(1),$(2))
 endef
 
 # Macros log avec traduction
-log_success = @printf "$(GREEN)[$(CHECK)] $(call msg,$(1),$(2))$(RESET)\n"
-log_error   = @printf "$(RED)[$(CROSS)] $(call msg,$(1),$(2))$(RESET)\n"; false
+log_success = @printf "$(GREEN)[$(OK)] $(call msg,$(1),$(2))$(RESET)\n"
+log_error   = @printf "$(RED)[$(ERROR)] $(call msg,$(1),$(2))$(RESET)\n"; false
 log_info    = @printf "$(YELLOW)[$(INFO)] $(call msg,$(1),$(2))$(RESET)\n"
 log_warn    = @printf "$(ORANGE)[$(WARNING)] $(call msg,$(1),$(2))$(RESET)\n"
 
@@ -44,6 +44,8 @@ REQUIRED_FILES := zz-sign-kernel zz-sign-modules 00-ensure_sign_file sbsetuptool
 
 .PHONY: all install uninstall check logo
 
+default: all
+
 logo:
 	@printf "$(CYAN)"
 	@printf "███████╗██████╗ ███████╗███████╗████████╗██╗   ██╗██████╗ ████████╗ ██████╗  ██████╗ ██╗       \n"
@@ -52,14 +54,6 @@ logo:
 	@printf "╚════██║██╔══██╗╚════██║██╔══╝     ██║   ██║   ██║██╔═══╝    ██║   ██║   ██║██║   ██║██║       \n"
 	@printf "███████║██████╔╝███████║███████╗   ██║   ╚██████╔╝██║        ██║   ╚██████╔╝╚██████╔╝███████╗  \n"
 	@printf "╚══════╝╚═════╝ ╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝        ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝  \n"
-	@printf "$(RESET)\n"
-
-
-all:
-	$(MAKE) logo
-	$(call log_warn,\
-		"Rien à compiler. Utilise 'make install' pour installer les fichiers.",\
-		"Nothing to compile. Use 'make install' to install the files.")
 	@printf "$(RESET)\n"
 
 check:
@@ -74,8 +68,6 @@ check:
 	@printf "$(RESET)\n"
 
 install:
-	$(MAKE) check
-	$(MAKE) logo
 	$(call log_info,\
 		"Installation...",\
 		"Installing...")
@@ -97,8 +89,7 @@ install:
 		"Installation complete.")
 	@printf "$(RESET)\n"
 
-uninstall:
-	$(MAKE) logo
+uninstall: check logo
 	$(call log_info,\
 		"Désinstallation...",\
 		"Uninstalling...")
@@ -117,4 +108,11 @@ uninstall:
 	$(call log_success,\
 		"Désinstallation terminée.",\
 		"Uninstall complete.")
+	@printf "$(RESET)\n"
+
+all:
+	$(MAKE) logo
+	$(call log_warn,\
+		"Rien à compiler. Utilise 'make install' pour installer les fichiers.",\
+		"Nothing to compile. Use 'make install' to install the files.")
 	@printf "$(RESET)\n"
