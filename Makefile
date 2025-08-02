@@ -60,6 +60,7 @@ all:
 	$(call log_warn,\
 		"Rien à compiler. Utilise 'make install' pour installer les fichiers.",\
 		"Nothing to compile. Use 'make install' to install the files.")
+	@printf "$(RESET)\n"
 
 check:
 	@for file in $(REQUIRED_FILES); do \
@@ -70,6 +71,7 @@ check:
 	$(call log_success,\
 		"Tous les fichiers requis sont présents.",\
 		"All required files are present.")
+	@printf "$(RESET)\n"
 
 install: check
 	$(MAKE) logo
@@ -92,6 +94,7 @@ install: check
 	$(call log_success,\
 		"Installation terminée.",\
 		"Installation complete.")
+	@printf "$(RESET)\n"
 
 uninstall:
 	$(MAKE) logo
@@ -113,3 +116,4 @@ uninstall:
 	$(call log_success,\
 		"Désinstallation terminée.",\
 		"Uninstall complete.")
+	@printf "$(RESET)\n"
