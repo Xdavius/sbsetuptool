@@ -130,6 +130,11 @@ case $1 in
   remove_keys
   ;;
 --help)
+  echo -e "
+  USAGE: sbsetuptool [OPTIONS]
+
+    --remove-keys: remove key folder to create new keyring
+    "
 ;;
 *)
   create_keys
