@@ -35,24 +35,24 @@ printf "${RESET}\n"
 create_keys() {
     echo -e "${YELLOW}[I] Création du trouveau de clé dans $KEYDIR ...${RESET}"
 	# Dossier de clé
-	if [ ! -d $(KEYDIR) ]; then
-	  install -d $(KEYDIR)
+	if [ ! -d ${KEYDIR} ]; then
+	  install -d ${KEYDIR}
 	fi
 
 	# Créer la clé et le certificat s’ils n’existent pas déjà
-	if [ ! -f $(KEYDIR)/MOK.priv ]; then
-	  openssl genrsa -out $(KEYDIR)/MOK.priv 2048
-	  chmod 400 $(KEYDIR)/MOK.priv
+	if [ ! -f ${KEYDIR}/MOK.priv ]; then
+	  openssl genrsa -out ${KEYDIR}/MOK.priv 2048
+	  chmod 400 ${KEYDIR}/MOK.priv
 	fi
 
-	if [ ! -f $(KEYDIR)/MOK.der ]; then
-	  openssl req -new -x509 -sha256 -key $(KEYDIR)/MOK.priv \
-	    -outform DER -out $(KEYDIR)/MOK.der -days 3650 \
+	if [ ! -f ${KEYDIR}/MOK.der ]; then
+	  openssl req -new -x509 -sha256 -key ${KEYDIR}/MOK.priv \
+	    -outform DER -out ${KEYDIR}/MOK.der -days 3650 \
 	    -subj "/CN=Secure Boot Signing/O=Custom Debian/C=FR"
 	fi
 
-	if [ ! -f $(KEYDIR)/MOK.pem ]; then
-	  openssl x509 -inform der -in $(KEYDIR)/MOK.der -out $(KEYDIR)/MOK.pem
+	if [ ! -f ${KEYDIR}/MOK.pem ]; then
+	  openssl x509 -inform der -in ${KEYDIR}/MOK.der -out ${KEYDIR}/MOK.pem
 	fi
 }
 
