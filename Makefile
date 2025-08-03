@@ -9,13 +9,16 @@ YELLOW = \033[1;33m
 CYAN   = \033[0;36m
 RESET  = \033[0m
 
-.PHONY: all install uninstall check logo
+.PHONY: default all install uninstall check logo
 
 # Dépendances requises
 REQUIRED_CMDS := git mokutil sbsigntool dkms
 
 # Fichiers requis
 REQUIRED_FILES := zz-sign-kernel zz-sign-modules 00-ensure_sign_file sbsetuptool
+
+default:
+	@printf "$(RED)[ERROR] No target specified. Use one of: install, uninstall, check$(RESET)\n"; exit 1
 
 check:
 	# Vérification des commandes nécessaires
