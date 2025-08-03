@@ -12,7 +12,7 @@ RESET  = \033[0m
 .PHONY: default all install uninstall check logo
 
 # Dépendances requises
-REQUIRED_CMDS := git mokutil sbsigntool dkms
+REQUIRED_CMDS := git mokutil sbsign dkms
 
 # Fichiers requis
 REQUIRED_FILES := zz-sign-kernel zz-sign-modules 00-ensure_sign_file sbsetuptool
@@ -21,7 +21,6 @@ default:
 	@printf "$(RED)[ERROR] No target specified. Use one of: install, uninstall, check$(RESET)\n"; exit 1
 
 check:
-	# Vérification des commandes nécessaires
 	@missing=0; \
 	for cmd in $(REQUIRED_CMDS); do \
 		if ! command -v "$$cmd" >/dev/null 2>&1; then \
@@ -29,21 +28,18 @@ check:
 			missing=1; \
 		fi; \
 	done; \
-	# Vérification des headers du noyau courant
 	if [ ! -d "/usr/src/linux-headers-$(shell uname -r)" ]; then \
 		printf "$(RED)[ERROR] Kernel headers not found: /usr/src/linux-headers-$(shell uname -r)$(RESET)\n"; \
 		missing=1; \
 	fi; \
-	# Arrêt si une dépendance est manquante
 	if [ "$$missing" -eq 1 ]; then exit 1; fi; \
-	# Vérification des fichiers requis
 	for file in $(REQUIRED_FILES); do \
 		if [ ! -f "$$file" ]; then \
 			printf "$(RED)[ERROR] Missing file: %s$(RESET)\n" "$$file"; \
 			exit 1; \
 		fi; \
 	done; \
-	@printf "$(GREEN)[OK]    All requirements are met.$(RESET)\n"
+	printf "$(GREEN)[OK]    All requirements are met.$(RESET)\n"
 	@printf "$(RESET)\n"
 
 
