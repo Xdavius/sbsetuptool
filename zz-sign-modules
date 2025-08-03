@@ -11,19 +11,24 @@ GREEN='\033[0;32m'
 RESET='\033[0m'
 
 if [ ! -x "$SIGN_FILE" ]; then
-	echo -e "${RED}[!] Fichier sign-file introuvable ou non exécutable : $SIGN_FILE${RESET}"
+	printf "${RED}[!] Fichier sign-file introuvable ou non exécutable : $SIGN_FILE${RESET}\n"
+	printf "${RESET}\n"
 	exit 1
 fi
 
-echo -e "${ORANGE}→ Signature des modules du noyau ${KERNEL_VERSION}${RESET}"
+printf "${YELLOW}[I] Signature des modules du noyau ${KERNEL_VERSION}${RESET}\n"
+printf "${RESET}\n"
 if [ -d "/usr/lib/modules/${KERNEL_VERSION}" ]; then
 	find "/usr/lib/modules/${KERNEL_VERSION}/" -name '*.ko' | while read -r module; do
 		"$SIGN_FILE" sha256 "$KEYDIR/MOK.priv" "$KEYDIR/MOK.der" "$module" || {
-			echo -e "${RED}[!] Échec de la signature : $module${RESET}"
+			printf "${RED}[!] Échec de la signature : $module${RESET}\n"
+			printf "${RESET}\n"
 			break
 		}
 	done
-	echo -e "${GREEN}[+] Tous les modules signés avec succès${RESET}"
+	printf "${GREEN}[V] Tous les modules signés avec succès${RESET}\n"
+	printf "${RESET}\n"
 else
-	echo -e "${YELLOW}[!] Dossier de modules introuvable pour ${KERNEL_VERSION}${RESET}"
+	printf "${YELLOW}[!] Dossier de modules introuvable pour ${KERNEL_VERSION}${RESET}\n"
+	printf "${RESET}\n"
 fi

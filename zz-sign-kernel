@@ -7,22 +7,31 @@ KEYDIR="/usr/share/secureboot-signing"
 KERNEL_IMG="$BOOT_PATH/vmlinuz-$KERNEL_VERSION"
 SIGNED_IMG="$BOOT_PATH/vmlinuz-$KERNEL_VERSION-signed"
 
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+RESET='\033[0m'
+
 if [ ! -f "$KERNEL_IMG" ]; then
-  echo "[!] Kernel $KERNEL_IMG introuvable"
+  printf "${RED}[!] Kernel $KERNEL_IMG introuvable${RESET}\n"
+  printf "${RESET}\n"
   exit 1
 fi
 
-echo "[*] Signature automatique de $KERNEL_IMG..."
+printf "${YELLOW}[I] Signature automatique de $KERNEL_IMG...${RESET}\n"
+printf "${RESET}\n"
 sbsign --key "$KEYDIR/MOK.priv" \
        --cert "$KEYDIR/MOK.pem" \
        --output "$SIGNED_IMG" "$KERNEL_IMG"
 
-echo "[✔] Fichier signé : $SIGNED_IMG"
+printf "${GREEN}[V] Fichier signé : $SIGNED_IMG\n"
+printf "${RESET}\n"
 
 # Uncomment to create unsigned backup
 #mv "$KERNEL_IMG" "$KERNEL_IMG.orig"
-#echo "[✔] $KERNEL_IMG Sauvegardé en $KERNEL_IMG.orig"
+#echo "[V] $KERNEL_IMG Sauvegardé en $KERNEL_IMG.orig"
 
 mv "$SIGNED_IMG" "$KERNEL_IMG"
 
-echo "[✔] $SIGNED_IMG installé en tant que $KERNEL_IMG"
+printf "${GREEN}[V] $SIGNED_IMG installé en tant que $KERNEL_IMG${RESET}\n"
+printf "${RESET}\n"
