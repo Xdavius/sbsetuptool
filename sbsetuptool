@@ -64,6 +64,8 @@ dkms_framework_conf() {
 
         echo 'PRIVATE_KEY="/usr/share/secureboot-signing/MOK.priv"' > /etc/dkms/framework.conf.d/dkms_key_path.conf
         echo 'PUBLIC_CERT="/usr/share/secureboot-signing/MOK.der"' >> /etc/dkms/framework.conf.d/dkms_key_path.conf
+        echo 'mok_signing_key="/usr/share/secureboot-signing/MOK.priv"' >> /etc/dkms/framework.conf.d/dkms_key_path.conf
+        echo 'mok_certificate="/usr/share/secureboot-signing/MOK.der"' >> /etc/dkms/framework.conf.d/dkms_key_path.conf
 }
 
 import_mok() {
