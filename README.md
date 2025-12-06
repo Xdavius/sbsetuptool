@@ -4,7 +4,7 @@ A tool to create mok and sign kernels modules and dkms modules(also Custom like 
 # Dependencies
 
 ```
-sudo apt install apt install git mokutil sbsigntool dkms linux-headers-amd64
+sudo apt install git mokutil sbsigntool dkms linux-headers-amd64
 ```
 
 # USAGE
